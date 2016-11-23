@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
   cudaFree(gimage);
 
   lodepng_encode32_file(output_filename, new_image, width/2, height/2);
+
   free(image);
   free(new_image);
   printf("Time elapsed = %g ms\n", timer.Elapsed());

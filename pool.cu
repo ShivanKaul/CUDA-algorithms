@@ -35,7 +35,7 @@ __global__ void process(unsigned char *image,unsigned char *new_image, int NUM_T
       new_image[idx] = ang;
       pos++;
     }
-  }
+  
 }
 
 int main(int argc, char *argv[])
