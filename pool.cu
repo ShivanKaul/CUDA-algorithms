@@ -15,28 +15,11 @@ __device__ int poolOp(unsigned char *i, int p, unsigned width)
 __global__ void process(unsigned char *image,unsigned char *new_image, int NUM_THREADS, unsigned width, unsigned height)
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    int chunk_size = (height/2 * width/2 * 4) / NUM_THREADS;
-    int start_idx = tid * chunk_size;
-    int end_idx = (tid == NUM_THREADS - 1) ? (height * width) : start_idx + chunk_size;
-    int idx = start_idx;
-    int pos = (2 * (idx / (width * 2)) * width * 4) + (2 * (idx%(width * 2))); 
-    pos -= idx%4;
-    if (idx%4 == 0 && tid != 0) {
-        pos -= 4;
-    }
-    for (idx = start_idx; idx < end_idx; idx++)
-    {
-      if (idx > 0 && idx % 4 == 0) {
-        pos += 4;
-      }
-      if (idx % (width * 2) == 0 && idx != 0 || (pos / (width * 4)) % 2 ==1) {
-        pos += width * 4;
-      }
-      int ang = poolOp(image, pos, width);
-      new_image[idx] = ang;
-      pos++;
-    }
-  
+    if (tid >= width * height) return;
+    int pos = (8 * width * (tid / (width * 2))) + (/*2*/2 * (tid%(width * 2))); 
+    pos -= tid%4;
+    int ang = poolOp(image, pos, width);
+    new_image[tid] = ang;
 }
 
 int main(int argc, char *argv[])
@@ -62,13 +45,14 @@ int main(int argc, char *argv[])
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
 
   NUM_THREADS = width * height;
+  //printf("NUM_THREADS: %d, with width %d and height %d\n", NUM_THREADS, width, height);
   new_image = (unsigned char *) malloc(width * height * sizeof(unsigned char));
   cudaMalloc(&gimage, 4 * width * height * sizeof(unsigned char));
   cudaMalloc(&gnew_image, width * height * sizeof(unsigned char));
   cudaMemcpy(gimage, image, 4 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice);
   // launch the kernel
   timer.Start();
-  process<<<NUM_THREADS/BLOCK_WIDTH, BLOCK_WIDTH>>>(gimage, gnew_image, NUM_THREADS, width, height);
+  process<<<(NUM_THREADS/BLOCK_WIDTH) + 1, BLOCK_WIDTH>>>(gimage, gnew_image, NUM_THREADS, width, height);
   timer.Stop();
   // copy back the result array to the CPU
   cudaMemcpy(new_image, gnew_image, width * height * sizeof(unsigned char), cudaMemcpyDeviceToHost);
