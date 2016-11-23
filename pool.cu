@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "lodepng.h"
 #include "gputimer.h"
 
