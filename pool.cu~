@@ -35,7 +35,7 @@ __global__ void process(unsigned char *image,unsigned char *new_image, int NUM_T
       new_image[idx] = ang;
       pos++;
     }
-  }
+  
 }
 
 int main(int argc, char *argv[])
@@ -80,5 +80,6 @@ int main(int argc, char *argv[])
   free(image);
   free(new_image);
   printf("Time elapsed = %g ms\n", timer.Elapsed());
+
   return 0;
 }

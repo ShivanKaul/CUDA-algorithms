@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
 
   NUM_THREADS = width * height;
-  new_image = malloc(width * height * sizeof(unsigned char));
+  new_image = (unsigned char *) malloc(width * height * sizeof(unsigned char));
   cudaMalloc(&gimage, 4 * width * height * sizeof(unsigned char));
   cudaMalloc(&gnew_image, width * height * sizeof(unsigned char));
   cudaMemcpy(gimage, image, 4 * width * height * sizeof(unsigned char), cudaMemcpyHostToDevice);
@@ -80,5 +80,6 @@ int main(int argc, char *argv[])
   free(image);
   free(new_image);
   printf("Time elapsed = %g ms\n", timer.Elapsed());
+
   return 0;
 }
