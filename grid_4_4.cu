@@ -60,7 +60,7 @@ __device__ void synthesize_corner(int i, int r, int c, double *u, double *u1, do
   }
 }
 
-__global__ void process(double *u, double *u1, double *u2, int iterations)
+__global__ void process(double *u, double *u1, double *u2, double *gr, int iterations)
 {
     int tid = threadIdx.x;
     int r = tid/4;
@@ -76,6 +76,7 @@ __global__ void process(double *u, double *u1, double *u2, int iterations)
         __syncthreads();
         memcpy(u2, u1, 16 * sizeof(double));
         memcpy(u1, u, 16 * sizeof(double));
+        gr[i] = u[10];
     }
 }
 
@@ -91,8 +92,8 @@ int main(int argc, char *argv[])
   int i;
   int iterations = atoi(argv[1]);
 
-  double u[16], u1[16], u2[16];
-  double *gu, *gu1, *gu2;
+  double u[16], u1[16], u2[16], r[iterations];
+  double *gu, *gu1, *gu2, *gr;
   
   for (i = 0; i < 16; i++)
   {
@@ -105,23 +106,27 @@ int main(int argc, char *argv[])
   cudaMalloc(&gu, 16 * sizeof(double));
   cudaMalloc(&gu1, 16 * sizeof(double));
   cudaMalloc(&gu2, 16 * sizeof(double));
+  cudaMalloc(&gr, iterations * sizeof(double));
   cudaMemcpy(gu, u, 16 * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(gu1, u1, 16 * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(gu2, u2, 16 * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemset((void *)gr, 0, iterations * sizeof(double));
   // launch the kernel
   timer.Start();
-  process<<<1, BLOCK_WIDTH>>>(gu, gu1, gu2, iterations);
+  process<<<1, BLOCK_WIDTH>>>(gu, gu1, gu2, gr, iterations);
   timer.Stop();
   // copy back the result array to the CPU
   cudaMemcpy(u, gu, 16 * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(u1, gu1, 16 * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(u2, gu2, 16 * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(r, gr, iterations * sizeof(double), cudaMemcpyDeviceToHost);
 
   cudaFree(gu);
   cudaFree(gu1);
   cudaFree(gu2);
+  cudaFree(gr);
 
-  int j;
+/*  int j;
   for (i = 0; i < 4; i++)
   {
     for (j = 0; j < 4; j++)
@@ -130,8 +135,14 @@ int main(int argc, char *argv[])
     }
     printf("\n");
   }
+*/
+  printf("%f", r[0]);
+  for (i = 1; i < iterations; i++)
+  {
+    printf(", %f", r[i]);
+  }
 
-  printf("Time elapsed = %g ms with %d itrts\n", timer.Elapsed(), iterations);
+  printf("\nTime elapsed = %g ms with %d iterations\n", timer.Elapsed(), iterations);
 
 //  free(u);
 //  free(u1);
