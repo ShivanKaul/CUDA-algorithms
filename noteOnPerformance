@@ -9,5 +9,6 @@ Time elapsed:
 - convolution
 
 - grid_4_4
+Time elapsed = 186.937 ms with 2000 iterations
 
 - grid_512_512
