@@ -19,6 +19,9 @@ convolve: convolve.c convolve.h
 test:
 	$(CC) -o test -std=c99 test_equality.c lodepng.c -lm
 
+grid_4_4: grid_4_4.cu
+	$(CC) -o grid_4_4 grid_4_4.cu
+
 clean:
 	-rm rectify -f
 	-rm pool -f
