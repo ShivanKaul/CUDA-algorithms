@@ -1,0 +1,14 @@
+Time elapsed:
+
+- pool
+0.102528 ms for CUDA (lab3)
+20ms for 16-cpu-threads (lab1)
+
+- rectify
+
+- convolution
+
+- grid_4_4
+Time elapsed = 186.937 ms with 2000 iterations
+
+- grid_512_512

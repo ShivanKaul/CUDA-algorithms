@@ -1,0 +1,2 @@
+0.000000, 0.000000
+Time elapsed = 1486 ms with 2 iterations
